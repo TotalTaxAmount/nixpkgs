@@ -1,0 +1,27 @@
+diff --git a/c2rust-ast-exporter/build.rs b/c2rust-ast-exporter/build.rs
+index 85bab33..88889b0 100644
+--- a/c2rust-ast-exporter/build.rs
++++ b/c2rust-ast-exporter/build.rs
+@@ -19,6 +19,9 @@ fn main() {
+         build_native(&llvm_info);
+     }
+ 
++    println!("cargo:rustc-link-search={}/lib", env::var("TINYCBOR_PATH").unwrap());
++    println!("cargo:rustc-link-lib=static=tinycbor");
++
+     // Generate ast_tags and ExportResult bindings
+     if let Err(e) = generate_bindings() {
+         eprintln!("{}", e);
+@@ -93,6 +96,12 @@ fn generate_bindings() -> Result<(), &'static str> {
+         // Tell bindgen we are processing c++
+         .clang_arg("-xc++")
+         .clang_arg("-std=c++11")
++        .clang_arg("-v")
++
++        // https://github.com/immunant/c2rust/issues/380
++        .clang_arg(format!("-I{}/c++/v1", env::var("LIBCXX_INCLUDE_DIR").unwrap())) 
++        // .clang_arg(format!("-I{}", env::var("GLIBC_INCLUDE_DIR").unwrap()))
++        // .clang_arg(format!("-I{}", env::var("LIBC_INCLUDE_DIR").unwrap()))
+         // Finish the builder and generate the bindings.
+         .generate()
+         .or(Err("Unable to generate ExportResult bindings"))?;
